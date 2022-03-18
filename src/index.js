@@ -148,10 +148,12 @@ export default class VueRouter {
       }
 	  // 设置 监听
       const setupListeners = routeOrError => {
+		  console.log("markChen>>>> 执行setupListeners");
         history.setupListeners()
         handleInitialScroll(routeOrError)
       }
 	  // 执行 transitionTo 方法 ！重要的方法
+	  // 默认所有 H5 的 history 对象
       history.transitionTo(
         history.getCurrentLocation(),
         setupListeners,

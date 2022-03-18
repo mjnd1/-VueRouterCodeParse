@@ -79,13 +79,23 @@ export class History {
     this.errorCbs.push(errorCb)
   }
 
+	/**
+	 * @description: 路由过渡函数
+	 * @param {string} location 当前window窗口的URL地址
+	 * @param {function} onComplete 监听函数之一 => 开始之前
+	 * @param {function} onAbort 监听函数之一 => 错误时
+	 * @author: 快乐就完事
+	 */
   transitionTo (
     location: RawLocation,
     onComplete?: Function,
     onAbort?: Function
   ) {
+	  console.log("markChen>>>> 执行transitonTo函数", this);
+	  console.log("markChen>>>> location为", location);
     let route
     // catch redirect option https://github.com/vuejs/vue-router/issues/3201
+	// 捕获重定向选项
     try {
       route = this.router.match(location, this.current)
     } catch (e) {
@@ -96,8 +106,12 @@ export class History {
       throw e
     }
     const prev = this.current
+	console.log("markChen>>>> 当前的current对象", this.current);
+	console.log("markChen>>>> 当前的route对象", route);
+	// => 执行真正的切换操作
     this.confirmTransition(
       route,
+	//   成功回调
       () => {
         this.updateRoute(route)
         onComplete && onComplete(route)
@@ -114,6 +128,7 @@ export class History {
           })
         }
       },
+	//   失败回调
       err => {
         if (onAbort) {
           onAbort(err)
