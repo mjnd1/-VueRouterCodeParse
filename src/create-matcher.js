@@ -15,24 +15,43 @@ export type Matcher = {
   addRoute: (parentNameOrRoute: string | RouteConfig, route?: RouteConfig) => void;
   getRoutes: () => Array<RouteRecord>;
 };
-
+/**
+ * @description: 根据路由的配置描述建立映射表，包含路径、名称到路由record的映射关系
+ * @param {*}
+ * @return {*}
+ * @author: 快乐就完事
+ */
 export function createMatcher (
   routes: Array<RouteConfig>,
   router: VueRouter
 ): Matcher {
+	console.log("markChen>>>> vuerouter构造函数执行时，创建路由映射表");
+	console.log("markChen>>>> routes 数组", routes);
+	console.log("markChen>>>> router 实例对象", router);
+	// 根据 路由 数组创建对应的路由映射对象
   const { pathList, pathMap, nameMap } = createRouteMap(routes)
 
   function addRoutes (routes) {
     createRouteMap(routes, pathList, pathMap, nameMap)
   }
 
+  /**
+   * @description: 添加路径对象
+   * @param {*} parentOrRoute 父路由对象或路由对象(如果存在，就就route添加到parentOrRoute的childen中)
+   * @param {*} route 准备添加的路由对象
+   * @return {*}
+   * @author: 快乐就完事
+   */
   function addRoute (parentOrRoute, route) {
+	  console.log("markChen>>>> 执行createMatcher中的 addRoute() => 添加路由记录对象");
     const parent = (typeof parentOrRoute !== 'object') ? nameMap[parentOrRoute] : undefined
     // $flow-disable-line
+	console.log("markChen>>>> 执行createMatcher中的 addRoute() => 创建路由映射对象");
     createRouteMap([route || parentOrRoute], pathList, pathMap, nameMap, parent)
 
     // add aliases of parent
     if (parent && parent.alias.length) {
+		console.log("markChen>>>> 执行createMatcher中的 addRoute() => 添加父级的别名");
       createRouteMap(
         // $flow-disable-line route is defined if parent is
         parent.alias.map(alias => ({ path: alias, children: [route] })),
@@ -48,6 +67,13 @@ export function createMatcher (
     return pathList.map(path => pathMap[path])
   }
 
+  /**
+   * @description: 根据传入的位置、当前路由、重定向路径计算匹配出相应的路由记录对象record
+   * 然后根据新的位置和record创建新的路径并返回
+   * @param {*}
+   * @return {*}
+   * @author: 快乐就完事
+   */
   function match (
     raw: RawLocation,
     currentRoute?: Route,

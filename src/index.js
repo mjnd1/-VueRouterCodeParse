@@ -32,7 +32,7 @@ export default class VueRouter {
   options: RouterOptions
   mode: string
   history: HashHistory | HTML5History | AbstractHistory
-  matcher: Matcher
+  matcher: Matcher // 路由映射表
   fallback: boolean
   beforeHooks: Array<?NavigationGuard>
   resolveHooks: Array<?NavigationGuard>
@@ -49,6 +49,7 @@ export default class VueRouter {
     this.beforeHooks = []
     this.resolveHooks = []
     this.afterHooks = []
+	// createMatcher 创建 路由映射表
     this.matcher = createMatcher(options.routes || [], this)
 
 	// 如果不插入mode，默认为 hash 模式
@@ -138,6 +139,7 @@ export default class VueRouter {
 
     if (history instanceof HTML5History || history instanceof HashHistory) {
       const handleInitialScroll = routeOrError => {
+		  console.log("markChen>>>> 执行handleInitialScroll");
         const from = history.current
         const expectScroll = this.options.scrollBehavior
         const supportsScroll = supportsPushState && expectScroll
