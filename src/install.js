@@ -4,7 +4,7 @@
  * @Autor: ChenZhiWei
  * @Date: 2022-03-18 08:53:04
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-03-18 10:08:11
+ * @LastEditTime: 2022-03-18 10:26:33
  */
 import View from './components/view'
 import Link from './components/link'
@@ -34,6 +34,7 @@ export function install (Vue) {
       if (isDef(this.$options.router)) {
         this._routerRoot = this
         this._router = this.$options.router
+		// 执行 router 的初始化函数 =>只执行一次
         this._router.init(this)
         Vue.util.defineReactive(this, '_route', this._router.history.current)
       } else {

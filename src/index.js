@@ -38,6 +38,7 @@ export default class VueRouter {
   resolveHooks: Array<?NavigationGuard>
   afterHooks: Array<?AfterNavigationHook>
 
+  // 构造函数 => 接收 options 对象
   constructor (options: RouterOptions = {}) {
     if (process.env.NODE_ENV !== 'production') {
       warn(this instanceof VueRouter, `Router must be called with the new operator.`)
@@ -50,10 +51,12 @@ export default class VueRouter {
     this.afterHooks = []
     this.matcher = createMatcher(options.routes || [], this)
 
+	// 如果不插入mode，默认为 hash 模式
     let mode = options.mode || 'hash'
     this.fallback =
       mode === 'history' && !supportsPushState && options.fallback !== false
     if (this.fallback) {
+		// supportsPushState => 是否支持 history.pushState
       mode = 'hash'
     }
     if (!inBrowser) {
@@ -63,9 +66,11 @@ export default class VueRouter {
 
     switch (mode) {
       case 'history':
+		  // 使用 H5 版本的 history 模式
         this.history = new HTML5History(this, options.base)
         break
       case 'hash':
+		  // 使用 hashHistroy 模式
         this.history = new HashHistory(this, options.base, this.fallback)
         break
       case 'abstract':
@@ -86,7 +91,13 @@ export default class VueRouter {
     return this.history && this.history.current
   }
 
+  /**
+   * router 的初始化
+   * @param {Object} app Vue的应用实例对象(一般是唯一的)
+   * @returns 
+   */
   init (app: any /* Vue component instance */) {
+	  console.log("markChen>>>>Vue-router 初始化");
     process.env.NODE_ENV !== 'production' &&
       assert(
         install.installed,
@@ -95,29 +106,35 @@ export default class VueRouter {
       )
 
     this.apps.push(app)
+	console.log("markChen>>>> app对象", app);
 
-    // set up app destroyed handler
+    // set up app destroyed handler => 设置应用程序销毁处理程序
     // https://github.com/vuejs/vue-router/issues/2639
+	// $once => https://cn.vuejs.org/v2/api/#vm-once
+	// 监听一个自定义事件，但是只触发一次。一旦触发之后，监听器就会被移除。
     app.$once('hook:destroyed', () => {
-      // clean out app from this.apps array once destroyed
+		console.log("markChen>>>> 触发hook:destroyed 自定义事件");
+      // clean out app from this.apps array once destroyed => 销毁后从 this.apps 数组中清除应用程序
       const index = this.apps.indexOf(app)
       if (index > -1) this.apps.splice(index, 1)
-      // ensure we still have a main app or null if no apps
-      // we do not release the router so it can be reused
+      // ensure we still have a main app or null if no apps => 确保我们仍然有一个主应用程序，如果没有应用程序，则为 null
+      // we do not release the router so it can be reused => 我们不释放路由器，所以它可以被重用
       if (this.app === app) this.app = this.apps[0] || null
 
       if (!this.app) this.history.teardown()
     })
 
-    // main app previously initialized
-    // return as we don't need to set up new history listener
+    // main app previously initialized => 先前初始化的主应用程序
+    // return as we don't need to set up new history listener => return 因为我们不需要设置新的历史监听器
     if (this.app) {
+		console.log("markChen>>>> 历史监听器存在，不向下处理")
       return
     }
 
     this.app = app
 
     const history = this.history
+	console.log("markChen>>>> histroy对象", history);
 
     if (history instanceof HTML5History || history instanceof HashHistory) {
       const handleInitialScroll = routeOrError => {
@@ -129,10 +146,12 @@ export default class VueRouter {
           handleScroll(this, routeOrError, from, false)
         }
       }
+	  // 设置 监听
       const setupListeners = routeOrError => {
         history.setupListeners()
         handleInitialScroll(routeOrError)
       }
+	  // 执行 transitionTo 方法 ！重要的方法
       history.transitionTo(
         history.getCurrentLocation(),
         setupListeners,
@@ -289,6 +308,7 @@ VueRouter.isNavigationFailure = isNavigationFailure
 VueRouter.NavigationFailureType = NavigationFailureType
 VueRouter.START_LOCATION = START
 
+// 向浏览器的Vue中注入VueRouter
 if (inBrowser && window.Vue) {
   window.Vue.use(VueRouter)
 }
