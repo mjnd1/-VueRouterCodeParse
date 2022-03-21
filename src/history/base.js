@@ -4,7 +4,7 @@
  * @Autor: ChenZhiWei
  * @Date: 2022-03-18 08:53:04
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-03-18 18:18:27
+ * @LastEditTime: 2022-03-21 15:30:08
  */
 /* @flow */
 
@@ -150,6 +150,9 @@ export class History {
           // because it's triggered by the redirection instead
           // https://github.com/vuejs/vue-router/issues/3225
           // https://github.com/vuejs/vue-router/issues/3331
+			// 初始重定向不应将历史标记为就绪
+			// 因为它是由重定向触发的
+			console.log("markChen>>>> confirmTransition() 执行失败 => 重定向不触发");
           if (!isNavigationFailure(err, NavigationFailureType.redirected) || prev !== START) {
             this.ready = true
             this.readyErrorCbs.forEach(cb => {
@@ -176,6 +179,9 @@ export class History {
       // changed after adding errors with
       // https://github.com/vuejs/vue-router/pull/3047 before that change,
       // redirect and aborted navigation would produce an err == null
+		// 添加错误后更改
+		// https://github.com/vuejs/vue-router/pull/3047 在更改之前，
+		// 重定向和中止导航会产生一个 err == null
       if (!isNavigationFailure(err) && isError(err)) {
         if (this.errorCbs.length) {
           this.errorCbs.forEach(cb => {

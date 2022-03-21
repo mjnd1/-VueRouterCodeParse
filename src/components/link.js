@@ -153,6 +153,8 @@ export default {
       data.attrs = { href, 'aria-current': ariaCurrentValue }
     } else {
       // find the first <a> child and apply listener and href
+		//找到第一个 <a> 孩子并应用监听器和 href
+		console.log("获取到的slots为", this.$slots);
       const a = findAnchor(this.$slots.default)
       if (a) {
         // in case the <a> is a static node
