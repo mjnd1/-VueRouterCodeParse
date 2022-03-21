@@ -18,7 +18,9 @@ export class HashHistory extends History {
   }
 
   // this is delayed until the app mounts
+  // => 这会延迟到应用程序挂载
   // to avoid the hashchange listener being fired too early
+  // => 避免 hashchange 监听器被过早触发
   setupListeners () {
     if (this.listeners.length > 0) {
       return

@@ -5,7 +5,9 @@ import { warn } from './warn'
 import { isError } from '../util/errors'
 
 export function resolveAsyncComponents (matched: Array<RouteRecord>): Function {
+	console.log("markChen>>>> resolveAsyncComponents()方法 => 解析异步路由组件", matched);
   return (to, from, next) => {
+	console.log("markChen>>>> resolveAsyncComponents的回调方法\n", to, from, next);
     let hasAsync = false
     let pending = 0
     let error = null
@@ -16,6 +18,11 @@ export function resolveAsyncComponents (matched: Array<RouteRecord>): Function {
       // we are not using Vue's default async resolving mechanism because
       // we want to halt the navigation until the incoming component has been
       // resolved.
+	// 如果它是一个函数并且没有附加 cid，
+	// 假设它是一个异步组件解析函数。
+	// 我们没有使用 Vue 的默认异步解析机制，因为
+	// 我们要停止导航，直到传入的组件已经完成
+	// 解决。
       if (typeof def === 'function' && def.cid === undefined) {
         hasAsync = true
         pending++
@@ -74,16 +81,18 @@ export function flatMapComponents (
   matched: Array<RouteRecord>,
   fn: Function
 ): Array<?Function> {
+console.log("markChen>>>> flatMapComponents()方法 => 匹配到的路由记录", matched);
   return flatten(matched.map(m => {
     return Object.keys(m.components).map(key => fn(
-      m.components[key],
-      m.instances[key],
+      m.components[key], // 路由的组件
+      m.instances[key], // 路由的组件实例对象
       m, key
     ))
   }))
 }
 
 export function flatten (arr: Array<any>): Array<any> {
+	// 合并 arr 到 [] 中并返回合并后的数组
   return Array.prototype.concat.apply([], arr)
 }
 

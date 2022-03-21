@@ -136,8 +136,10 @@ function queryIncludes (current: Dictionary<string>, target: Dictionary<string>)
 }
 
 export function handleRouteEntered (route: Route) {
+console.log("markChen>>>> handleRouteEntered => 进入到激活的路由钩子函数中", route);
   for (let i = 0; i < route.matched.length; i++) {
     const record = route.matched[i]
+	// instances => 组件实例对象
     for (const name in record.instances) {
       const instance = record.instances[name]
       const cbs = record.enteredCbs[name]

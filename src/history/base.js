@@ -1,3 +1,11 @@
+/*
+ * @Description: 
+ * @Version: 2.0
+ * @Autor: ChenZhiWei
+ * @Date: 2022-03-18 08:53:04
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-03-18 18:18:27
+ */
 /* @flow */
 
 import { _Vue } from '../install'
@@ -23,9 +31,9 @@ import {
 import { handleScroll } from '../util/scroll'
 
 export class History {
-  router: Router
+  router: Router // 准备跳转的下一个 router 对象
   base: string
-  current: Route
+  current: Route // 当前的 router 对象
   pending: ?Route
   cb: (r: Route) => void
   ready: boolean
@@ -82,8 +90,8 @@ export class History {
 	/**
 	 * @description: 路由过渡函数
 	 * @param {string} location 当前window窗口的URL地址
-	 * @param {function} onComplete 监听函数之一 => 开始之前
-	 * @param {function} onAbort 监听函数之一 => 错误时
+	 * @param {function} onComplete 监听函数之一 => 成功的回调函数
+	 * @param {function} onAbort 监听函数之一 => 失败的回调函数
 	 * @author: 快乐就完事
 	 */
   transitionTo (
@@ -106,30 +114,34 @@ export class History {
       throw e
     }
     const prev = this.current
-	console.log("markChen>>>> 当前的current对象", this.current);
-	console.log("markChen>>>> 当前的route对象", route);
+	console.log("markChen>>>> 当前的current对象-也就是当前的URL对象", this.current);
+	console.log("markChen>>>> 当前的route对象-也就是准备跳转到的URL对象", route);
 	// => 执行真正的切换操作
     this.confirmTransition(
       route,
 	//   成功回调
       () => {
+		console.log("markChen>>>> confirmTransition() 执行成功=> 路由准备切换");
         this.updateRoute(route)
         onComplete && onComplete(route)
         this.ensureURL()
         this.router.afterHooks.forEach(hook => {
+	console.log("markChen>>>> confirmTransition() 执行成功=> hook", hook);
           hook && hook(route, prev)
         })
 
-        // fire ready cbs once
+        // fire ready cbs once => 准备好 cbs 一次
         if (!this.ready) {
           this.ready = true
           this.readyCbs.forEach(cb => {
+			console.log("markChen>>>> confirmTransition() 执行成功=> readyCbs => 准备好 cbs 一次");
             cb(route)
           })
         }
       },
 	//   失败回调
       err => {
+		console.log("markChen>>>> confirmTransition() 执行失败=> 路由不变化");
         if (onAbort) {
           onAbort(err)
         }
@@ -149,6 +161,14 @@ export class History {
     )
   }
 
+  /**
+   * @description: 执行路由的真正切换
+   * @param {*} route 准备跳转到的 router 对象
+   * @param {*} onComplete 成功的回调函数
+   * @param {*} onAbort 失败的回调函数
+   * @return {*}
+   * @author: 快乐就完事
+   */
   confirmTransition (route: Route, onComplete: Function, onAbort?: Function) {
     const current = this.current
     this.pending = route
@@ -175,6 +195,7 @@ export class History {
     if (
       isSameRoute(route, current) &&
       // in the case the route map has been dynamically appended to
+	  // => 如果路线图已动态附加到
       lastRouteIndex === lastCurrentIndex &&
       route.matched[lastRouteIndex] === current.matched[lastCurrentIndex]
     ) {
@@ -189,31 +210,44 @@ export class History {
       this.current.matched,
       route.matched
     )
+	console.log("markChen>>>> confirmTransition()方法 => uptaded对象", updated);
+	console.log("markChen>>>> confirmTransition()方法 => deactivated对象=>准备销毁的路由对象数组", deactivated);
+	console.log("markChen>>>> confirmTransition()方法 => activated对象=>准备进入的路由对象数组", activated);
 
     const queue: Array<?NavigationGuard> = [].concat(
-      // in-component leave guards
+      // in-component leave guards => 组件内的休假警卫
       extractLeaveGuards(deactivated),
-      // global before hooks
+      // global before hooks => 全局前置钩子 => 由组件自己里面添加的钩子函数
       this.router.beforeHooks,
-      // in-component update hooks
+      // in-component update hooks => 组件内更新挂钩
       extractUpdateHooks(updated),
-      // in-config enter guards
+      // in-config enter guards => 在配置中输入警卫 => beforeEnter 钩子函数，由组件自己添加的钩子函数
       activated.map(m => m.beforeEnter),
-      // async components
+      // async components => 异步组件
       resolveAsyncComponents(activated)
     )
 
+    /**
+     * @description: 逐步执行 queue 函数队列 中的钩子函数
+     * @param {*} hook 钩子函数
+     * @param {*} next 进行下一个的函数调用
+     */
     const iterator = (hook: NavigationGuard, next) => {
       if (this.pending !== route) {
         return abort(createNavigationCancelledError(current, route))
       }
       try {
+		console.log("markChen>>>> iterator() => 路由对象和当前的路由对象", route, current);
         hook(route, current, (to: any) => {
+			console.log("markChen>>>> hook() => hook()函数的回调", to);
           if (to === false) {
             // next(false) -> abort navigation, ensure current URL
+			// => 中止导航，确保当前 URL
+			console.log("markChen>>>> hook() => 不执行跳转", to);
             this.ensureURL(true)
             abort(createNavigationAbortedError(current, route))
           } else if (isError(to)) {
+			console.log("markChen>>>> hook() => 跳转错误", to);
             this.ensureURL(true)
             abort(to)
           } else if (
@@ -222,14 +256,19 @@ export class History {
               (typeof to.path === 'string' || typeof to.name === 'string'))
           ) {
             // next('/') or next({ path: '/' }) -> redirect
+			// => 重定向
             abort(createNavigationRedirectedError(current, route))
             if (typeof to === 'object' && to.replace) {
+				console.log("markChen>>>> hook() => 替换当前路由=>重定向", to);
               this.replace(to)
             } else {
+				console.log("markChen>>>> hook() => 进入路由到路由记录中=>push", to);
               this.push(to)
             }
           } else {
             // confirm transition and pass on the value
+			// => 确认转换并传递值
+			console.log("markChen>>>> hook() => 确定进行跳转", to);
             next(to)
           }
         })
@@ -237,20 +276,27 @@ export class History {
         abort(e)
       }
     }
-
+	console.log("markChen>>>> confirmTransition() => runQueue()函数作用: 将queue保存的函数作为参数,传递给iterator()函数执行");
+	console.log("markChen>>>> confirmTransition() => queue函数", queue);
     runQueue(queue, iterator, () => {
+		console.log("markChen>>>> runQueue => 执行runQueue()的回调函数方法");
       // wait until async components are resolved before
+	  // => 等到异步组件被解析之前
       // extracting in-component enter guards
+	  // => 提取组件内输入守卫
       const enterGuards = extractEnterGuards(activated)
       const queue = enterGuards.concat(this.router.resolveHooks)
+	  console.log("markChen>>>> runQueue => 准备把beforeRouteEnter()和beforeResolve()添加到queue中");
       runQueue(queue, iterator, () => {
         if (this.pending !== route) {
           return abort(createNavigationCancelledError(current, route))
         }
         this.pending = null
+		console.log("markChen>>>> runQueue => 准备执行confirmTransition()的成功回调函数");
         onComplete(route)
         if (this.router.app) {
           this.router.app.$nextTick(() => {
+			console.log("markChen>>>> $nextTick => 执行$nextTick的回调函数");
             handleRouteEntered(route)
           })
         }
@@ -324,6 +370,14 @@ function resolveQueue (
   }
 }
 
+/**
+ * @description: 调用 路由的钩子 函数
+ * @param {*} records 路由记录数组
+ * @param {*} name 准备调用的钩子函数名称
+ * @param {*} bind bindGuard()函数
+ * @param {*} reverse 是否反转
+ * @author: 快乐就完事
+ */
 function extractGuards (
   records: Array<RouteRecord>,
   name: string,
@@ -332,12 +386,15 @@ function extractGuards (
 ): Array<?Function> {
   const guards = flatMapComponents(records, (def, instance, match, key) => {
     const guard = extractGuard(def, name)
+	console.log("markChen>>>> flatMapComponents()方法 => 钩子函数", guard);
+	console.log("markChen>>>> flatMapComponents()方法 => 传入的钩子函数名称", name);
     if (guard) {
       return Array.isArray(guard)
         ? guard.map(guard => bind(guard, instance, match, key))
         : bind(guard, instance, match, key)
     }
   })
+  console.log("markChen>>>> extractGuards()方法 => 钩子函数数组", guards);
   return flatten(reverse ? guards.reverse() : guards)
 }
 
@@ -347,12 +404,14 @@ function extractGuard (
 ): NavigationGuard | Array<NavigationGuard> {
   if (typeof def !== 'function') {
     // extend now so that global mixins are applied.
+	// => 现在扩展，以便应用全局混合
     def = _Vue.extend(def)
   }
   return def.options[key]
 }
 
 function extractLeaveGuards (deactivated: Array<RouteRecord>): Array<?Function> {
+	console.log("markChen>>>> extractLeaveGuards()方法");
   return extractGuards(deactivated, 'beforeRouteLeave', bindGuard, true)
 }
 
@@ -371,6 +430,7 @@ function bindGuard (guard: NavigationGuard, instance: ?_Vue): ?NavigationGuard {
 function extractEnterGuards (
   activated: Array<RouteRecord>
 ): Array<?Function> {
+	console.log("markChen>>>> extractEnterGuards() => 执行准备激活的路由的beforeRouteEnter钩子函数");
   return extractGuards(
     activated,
     'beforeRouteEnter',
@@ -385,7 +445,9 @@ function bindEnterGuard (
   match: RouteRecord,
   key: string
 ): NavigationGuard {
+	console.log("markChen>>>> bindEnterGuard()");
   return function routeEnterGuard (to, from, next) {
+	console.log("markChen>>>> routeEnterGuard()");
     return guard(to, from, cb => {
       if (typeof cb === 'function') {
         if (!match.enteredCbs[key]) {

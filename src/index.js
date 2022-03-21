@@ -171,14 +171,17 @@ export default class VueRouter {
   }
 
   beforeEach (fn: Function): Function {
+console.log("markChen>>>> beforeEach() 全局钩子");
     return registerHook(this.beforeHooks, fn)
   }
 
   beforeResolve (fn: Function): Function {
+console.log("markChen>>>> beforeResolve() 全局钩子");
     return registerHook(this.resolveHooks, fn)
   }
 
   afterEach (fn: Function): Function {
+console.log("markChen>>>> afterEach() 全局钩子");
     return registerHook(this.afterHooks, fn)
   }
 
@@ -278,6 +281,7 @@ export default class VueRouter {
   addRoute (parentOrRoute: string | RouteConfig, route?: RouteConfig) {
     this.matcher.addRoute(parentOrRoute, route)
     if (this.history.current !== START) {
+	console.log("markChen>>>> addRoute() => 添加路由记录对象", this.history.getCurrentLocation());
       this.history.transitionTo(this.history.getCurrentLocation())
     }
   }
